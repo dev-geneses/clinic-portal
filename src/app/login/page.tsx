@@ -61,6 +61,7 @@ export default function LoginPage() {
                   key={role}
                   onClick={() => setSelected(role)}
                   className={`role-badge ${color}`}
+                  type="button"
                   style={{
                     padding: "0.65rem 0.75rem",
                     borderRadius: "0.7rem",
