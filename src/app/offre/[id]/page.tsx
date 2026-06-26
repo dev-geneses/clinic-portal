@@ -31,6 +31,8 @@ export default function OffreDetailPage() {
   const [nom, setNom] = useState("");
   const [offre, setOffre] = useState<Offre | null>(null);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [documentUrl, setDocumentUrl] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -49,6 +51,17 @@ export default function OffreDetailPage() {
         .single();
 
       setOffre(data);
+
+      if (data?.statut === "acceptee") {
+        const supabase2 = createClient();
+        const { data: urlData } = supabase2.storage.from("offres-signees").getPublicUrl(`${id}`);
+        const url = urlData?.publicUrl;
+        if (url) {
+          const check = await fetch(url, { method: "HEAD" });
+          if (check.ok) setDocumentUrl(url);
+        }
+      }
+
       setLoading(false);
     }
     load();
@@ -58,6 +71,21 @@ export default function OffreDetailPage() {
     const supabase = createClient();
     await supabase.from("offres").update({ statut }).eq("id", id);
     setOffre(o => o ? { ...o, statut } : o);
+  }
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const supabase = createClient();
+    const ext = file.name.split(".").pop();
+    const path = `${id}.${ext}`;
+    const { error } = await supabase.storage.from("offres-signees").upload(path, file, { upsert: true });
+    if (!error) {
+      const { data: urlData } = supabase.storage.from("offres-signees").getPublicUrl(path);
+      setDocumentUrl(urlData?.publicUrl ?? null);
+    }
+    setUploading(false);
   }
 
   const total = offre?.items.reduce((s, i) => s + i.nb_seances * i.prix_unitaire, 0) ?? 0;
@@ -96,9 +124,12 @@ export default function OffreDetailPage() {
               {offre.statut}
             </span>
             {offre.statut === "brouillon" && (
-              <button className="btn btn-primary btn-sm" onClick={() => updateStatut("envoyee")}>
-                Marquer envoyée
-              </button>
+              <>
+                <a href={`/offre/${id}/editer`} className="btn btn-ghost btn-sm">✏️ Éditer</a>
+                <button className="btn btn-primary btn-sm" onClick={() => updateStatut("envoyee")}>
+                  Marquer envoyée
+                </button>
+              </>
             )}
             {offre.statut === "envoyee" && (
               <>
@@ -115,6 +146,27 @@ export default function OffreDetailPage() {
             </button>
           </div>
         </div>
+
+        {/* Upload offre signée */}
+        {offre.statut === "acceptee" && (
+          <div className="card" style={{ padding: "1.25rem", marginBottom: "1rem", border: "1px solid rgba(26,92,79,0.2)", background: "var(--brand-light)" }}>
+            <p className="eyebrow" style={{ marginBottom: "0.75rem" }}>Offre signée</p>
+            {documentUrl ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <img src={documentUrl} alt="Offre signée" style={{ maxWidth: "100%", maxHeight: "500px", objectFit: "contain", borderRadius: "0.5rem", border: "1px solid var(--stroke-light)" }} />
+                <label className="btn btn-ghost btn-sm" style={{ alignSelf: "flex-start", cursor: "pointer" }}>
+                  {uploading ? "Chargement…" : "Remplacer l'image"}
+                  <input type="file" accept="image/*" style={{ display: "none" }} onChange={handleUpload} disabled={uploading} />
+                </label>
+              </div>
+            ) : (
+              <label className="btn btn-primary btn-sm" style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                {uploading ? "Chargement…" : "📎 Charger l'offre signée"}
+                <input type="file" accept="image/*,application/pdf" style={{ display: "none" }} onChange={handleUpload} disabled={uploading} />
+              </label>
+            )}
+          </div>
+        )}
 
         {/* Notes */}
         {offre.notes && (
