@@ -78,7 +78,7 @@ export default function DashboardPage() {
   }
 
   const STAT_CARDS = [
-    { label: "Patients", value: stats.patients, href: "/prescription", icon: "👤", visible: true },
+    { label: "Patients", value: stats.patients, href: "/patient", icon: "👤", visible: true },
     { label: "Prescriptions", value: stats.prescriptions, href: "/prescription", icon: "📋", visible: true },
     { label: "Offres", value: stats.offres, href: "/offre", icon: "💶", visible: role !== "infirmiere" },
     { label: "Soins cette semaine", value: stats.planning_semaine, href: "/planning", icon: "🗓", visible: true },
