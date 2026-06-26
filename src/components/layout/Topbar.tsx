@@ -13,6 +13,7 @@ const ROLE_LABELS: Record<Role, string> = {
 
 const NAV_LINKS = [
   { href: "/dashboard",    label: "Tableau de bord", roles: ["professeur","financier","admin","infirmiere"] },
+  { href: "/patient",      label: "Patients",         roles: ["professeur","financier","admin","infirmiere"] },
   { href: "/prescription", label: "Prescriptions",   roles: ["professeur","financier","admin","infirmiere"] },
   { href: "/offre",        label: "Offres",           roles: ["professeur","financier","admin"] },
   { href: "/planning",     label: "Planning",         roles: ["professeur","financier","admin","infirmiere"] },

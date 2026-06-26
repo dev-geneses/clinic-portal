@@ -4,11 +4,11 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import type { Role } from "@/types";
 
-const ROLES: { role: Role; label: string; color: string; icon: string }[] = [
-  { role: "professeur",  label: "Professeur",  color: "role-professeur",  icon: "🔬" },
-  { role: "financier",   label: "Financier",   color: "role-financier",   icon: "💼" },
-  { role: "admin",       label: "Admin",       color: "role-admin",       icon: "📋" },
-  { role: "infirmiere",  label: "Infirmière",  color: "role-infirmiere",  icon: "🩺" },
+const ROLES: { role: Role; label: string; color: string; icon: string; email: string }[] = [
+  { role: "professeur",  label: "Professeur",  color: "role-professeur",  icon: "🔬", email: "prof.dr.dantoine@genesesclinic.com" },
+  { role: "financier",   label: "Financier",   color: "role-financier",   icon: "💼", email: "finance@genesesclinic.com" },
+  { role: "admin",       label: "Admin",       color: "role-admin",       icon: "📋", email: "info@genesesclinic.com" },
+  { role: "infirmiere",  label: "Infirmière",  color: "role-infirmiere",  icon: "🩺", email: "nurse@genesesclinic.com" },
 ];
 
 export default function LoginPage() {
@@ -19,9 +19,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  function selectRole(r: typeof ROLES[0]) {
+    setSelected(r.role);
+    setEmail(r.email);
+  }
+
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (!selected) return;
     setLoading(true);
     setError("");
 
@@ -56,25 +60,25 @@ export default function LoginPage() {
           <div style={{ marginBottom: "1.5rem" }}>
             <p className="field-label" style={{ marginBottom: "0.75rem" }}>Votre rôle</p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem" }}>
-              {ROLES.map(({ role, label, color, icon }) => (
+              {ROLES.map((r) => (
                 <button
-                  key={role}
-                  onClick={() => setSelected(role)}
-                  className={`role-badge ${color}`}
+                  key={r.role}
+                  onClick={() => selectRole(r)}
+                  className={`role-badge ${r.color}`}
                   type="button"
                   style={{
                     padding: "0.65rem 0.75rem",
                     borderRadius: "0.7rem",
                     cursor: "pointer",
-                    border: selected === role ? "2px solid currentColor" : "2px solid transparent",
+                    border: selected === r.role ? "2px solid currentColor" : "2px solid transparent",
                     fontSize: "0.8rem",
                     justifyContent: "flex-start",
                     gap: "0.5rem",
                     transition: "all 120ms ease",
-                    opacity: selected && selected !== role ? 0.5 : 1,
+                    opacity: selected && selected !== r.role ? 0.5 : 1,
                   }}
                 >
-                  <span>{icon}</span> {label}
+                  <span>{r.icon}</span> {r.label}
                 </button>
               ))}
             </div>
@@ -113,8 +117,8 @@ export default function LoginPage() {
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={!selected || loading}
-              style={{ width: "100%", justifyContent: "center", opacity: (!selected || loading) ? 0.6 : 1 }}
+              disabled={!email || !password || loading}
+              style={{ width: "100%", justifyContent: "center", opacity: (!email || !password || loading) ? 0.6 : 1 }}
             >
               {loading ? "Connexion…" : "Accéder au portail"}
             </button>
